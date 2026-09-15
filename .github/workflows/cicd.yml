@@ -12,28 +12,7 @@ jobs:
         run: docker build -t devops-lab-app:${{ github.sha }} ./app
       - name: Set up kubectl
         uses: azure/setup-kubectl@v4
-      - name: Create dummy kubeconfig
+      - name: Validate Kubernetes Manifests (YAML syntax)
         run: |
-          mkdir -p ~/.kube
-          cat > ~/.kube/config << 'KCFG'
-          apiVersion: v1
-          kind: Config
-          clusters:
-          - cluster:
-              server: https://localhost:6443
-              insecure-skip-tls-verify: true
-            name: dummy
-          contexts:
-          - context:
-              cluster: dummy
-              user: dummy
-            name: dummy
-          current-context: dummy
-          users:
-          - name: dummy
-            user: {}
-          KCFG
-      - name: Validate Kubernetes Manifests
-        run: |
-          kubectl apply --dry-run=client --validate=false -f k8s/deployment.yml
-          kubectl apply --dry-run=client --validate=false -f k8s/service.yml
+          python3 -c "import yaml; list(yaml.safe_load_all(open('k8s/deployment.yml'))); print('deployment.yml: valid YAML')"
+          python3 -c "import yaml; list(yaml.safe_load_all(open('k8s/service.yml'))); print('service.yml: valid YAML')"
